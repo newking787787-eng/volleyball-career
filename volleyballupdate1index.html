@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Volleyball Career Management Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0d1b2a;
+            color: #ffffff;
+        }
+
+        #orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ffcc00;
+            padding: 20px;
+        }
+
+        @media screen and (orientation: portrait) {
+            #orientation-warning {
+                display: flex;
+            }
+        }
+
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .active-screen {
+            display: flex;
+        }
+
+        /* INTRO SCREEN */
+        #intro-screen {
+            background: linear-gradient(135deg, #0b1d3a 0%, #1a365d 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .title-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #8d99ae;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+
+        .svg-container {
+            width: 180px;
+            height: 220px;
+            margin: 5px 0;
+        }
+
+        .branding-text {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1rem;
+            text-shadow: 0 0 5px rgba(0,255,136,0.5);
+        }
+
+        .btn-main {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-main:active {
+            transform: scale(0.95);
+            background: #1d4ed8;
+        }
+
+        /* MODALS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 18px;
+            width: 85%;
+            max-width: 550px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .save-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .save-slot {
+            background: #0f172a;
+            border: 1px solid #475569;
+            padding: 12px;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .save-slot.vip {
+            border-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        /* POSITION CREATION */
+        #creation-screen {
+            flex-direction: column;
+            padding: 20px;
+            background: #0f172a;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pos-grid {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .pos-card {
+            background: #1e293b;
+            border: 2px solid #334155;
+            padding: 12px;
+            border-radius: 8px;
+            width: 120px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .pos-card.selected {
+            border-color: #3b82f6;
+            background: #1e3a8a;
+        }
+
+        /* MAIN DASHBOARD */
+        #dashboard-screen {
+            flex-direction: column;
+            background: #0b132b;
+            padding: 10px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1c2541;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border: 1px solid #3a506b;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            margin-top: 8px;
+            height: calc(100% - 50px);
+        }
+
+        #display-panel {
+            flex: 1.8;
+            background: #1c2541;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #3a506b;
+        }
+
+        #log-area {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+
+        #control-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #1c2541;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #3a506b;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            color: #6fffe9;
+            margin-bottom: 4px;
+            font-weight: bold;
+            border-bottom: 1px solid #3a506b;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .action-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .action-btns button {
+            padding: 8px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-rest { background: #16a34a; }
+        .btn-match { background: #dc2626; }
+        .btn-records { background: #8b5cf6; }
+        .btn-skill-center { background: #f59e0b; color: #000; }
+
+        .choice-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            background: #334155;
+            color: #fff;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .choice-btn.special-btn {
+            background: linear-gradient(90deg, #b45309 0%, #d97706 100%);
+            border-color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .choice-btn:active { background: #1e293b; }
+
+        /* SPECIAL SKILL CENTER SCREEN */
+        #skill-center-screen {
+            flex-direction: column;
+            background: #0f172a;
+            padding: 15px;
+        }
+
+        .skill-center-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .skill-list-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .skill-card {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .skill-card.unlocked {
+            border-color: #22c55e;
+            background: #064e3b;
+        }
+
+        .skill-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+
+        .skill-desc {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .btn-buy {
+            background: #eab308;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-upgrade {
+            background: #3b82f6;
+            border: none;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .record-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .record-card {
+            background: #0f172a;
+            border: 1px solid #3b82f6;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-up-tag {
+            color: #4ade80;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Landscape Warning -->
+    <div id="orientation-warning">
+        🔄 ကျေးဇူးပြု၍ ဂိမ်းကို စောင်းပြီး ဆော့ပါ (Landscape Mode)
+    </div>
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen" class="screen active-screen">
+        <div class="title-text">Volleyball Career</div>
+        
+        <div class="svg-container">
+            <svg class="player-silhouette" viewBox="0 0 200 250" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <g filter="url(#glow)">
+                <!-- 1. Spike Hand -->
+                <path d="M 130 30 Q 140 25 145 35 Q 135 45 125 55 Z" fill="#f1c27d" />
+                <path d="M 105 60 C 115 50, 125 40, 135 35 L 125 55 C 115 60, 105 65, 100 70 Z" fill="#f1c27d" />
+
+                <!-- 2. Head & Hair -->
+                <circle cx="92" cy="48" r="11" fill="#f1c27d" />
+                <path d="M 82 48 C 82 35, 102 35, 102 48 C 95 40, 88 40, 82 48 Z" fill="#2d1e18" />
+
+                <!-- 3. Balance Arm -->
+                <path d="M 85 62 Q 60 50 50 60 Q 60 70 80 72 Z" fill="#f1c27d" />
+
+                <!-- 4. Jersey Body -->
+                <path d="M 85 62 Q 100 60 110 68 L 102 110 Q 90 110 78 105 Z" fill="#1b4965" />
+                <path d="M 90 68 C 95 75, 100 85, 96 100" stroke="#e94560" stroke-width="3" fill="none" />
+
+                <!-- 5. Shorts -->
+                <path d="M 78 105 L 102 110 L 105 125 L 75 120 Z" fill="#2b2d42" />
+
+                <!-- 6. Legs -->
+                <path d="M 78 120 Q 60 145 50 155 L 58 160 Q 72 145 82 122 Z" fill="#f1c27d" />
+                <path d="M 100 123 Q 115 150 118 170 L 108 172 Q 102 150 90 125 Z" fill="#f1c27d" />
+
+                <!-- 7. Knee Pads -->
+                <rect x="53" y="145" width="10" height="10" rx="3" fill="#2b2d42" transform="rotate(15 53 145)" />
+                <rect x="107" y="155" width="10" height="10" rx="3" fill="#2b2d42" transform="rotate(-10 107 155)" />
+
+                <!-- 8. Shoes -->
+                <path d="M 50 155 Q 38 152 42 163 L 58 160 Z" fill="#e94560" />
+                <path d="M 118 170 Q 120 185 105 185 L 108 172 Z" fill="#e94560" />
+              </g>
+            </svg>
+        </div>
+
+        <button class="btn-main" onclick="openSaveModal()">Start Career</button>
+        <div class="branding-text">UzubutaGaming</div>
+    </div>
+
+    <!-- SAVE SELECTION MODAL -->
+    <div id="save-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 10px;">Select Save Slot</h3>
+            <div class="save-grid">
+                <div class="save-slot" onclick="selectSave(1)">Save Slot 1</div>
+                <div class="save-slot" onclick="selectSave(2)">Save Slot 2</div>
+                <div class="save-slot" onclick="selectSave(3)">Save Slot 3</div>
+                <div class="save-slot vip" onclick="selectSave('VIP')">⭐ VIP Save (+50% Buff & x4 Salary)</div>
+            </div>
+            <button class="choice-btn" style="text-align: center;" onclick="closeSaveModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- PLAYER CREATION SCREEN -->
+    <div id="creation-screen" class="screen">
+        <h2>Choose Player Position</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">ကစားလိုသော နေရာအား ရွေးချယ်ပါ</p>
+        <div class="pos-grid" id="pos-selector-container"></div>
+        <button class="btn-main" style="margin-top: 25px;" onclick="confirmPosition()">Start Career Path</button>
+    </div>
+
+    <!-- MAIN GAME DASHBOARD -->
+    <div id="dashboard-screen" class="screen">
+        <header>
+            <div>👤 <span id="ui-name">Player</span> (<span id="ui-pos">POS</span>) <span id="ui-vip-tag" style="color:#fbbf24; font-weight:bold;"></span></div>
+            <div>📅 <span id="ui-date">Jan 1, 2026</span> (Age <span id="ui-age">15</span>)</div>
+            <div>💰 Cash: <b id="ui-money" style="color: #eab308;">$0</b></div>
+            <div>🏐 Match: <span id="ui-match-num">1</span>/12</div>
+            <div>⚡ Energy: <b id="ui-energy" style="color: #4ade80;">100%</b></div>
+        </header>
+
+        <main>
+            <section id="display-panel">
+                <div id="log-area">
+                    <div class="log-entry">🏐 Volleyball Career Management မှ ကြိုဆိုပါသည်။ ပွဲစဉ်များ ခက်ခဲအဆင့် မြှင့်တင်ထားပါသည်။</div>
+                </div>
+            </section>
+
+            <section id="control-panel">
+                <div class="section-title">ABILITIES</div>
+                <div class="stats-container" id="abilities-list"></div>
+
+                <div class="section-title" style="margin-top: 6px;">SKILLS</div>
+                <div class="stats-container" id="skills-list"></div>
+
+                <div class="action-btns" style="margin-top: auto;">
+                    <button class="btn-skill-center" onclick="openSkillCenter()">⭐ Special Skill Center</button>
+                    <button class="btn-records" onclick="openRecordsModal()">🏆 Career Stats</button>
+                    <button class="btn-rest" onclick="restPlayer()">🛌 Rest (+3 Days)</button>
+                    <button class="btn-match" onclick="triggerPreMatch()">🏐 Pre-Match Prep & Play</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- SPECIAL SKILL CENTER SCREEN -->
+    <div id="skill-center-screen" class="screen">
+        <div class="skill-center-header">
+            <div>
+                <h2>⭐ Special Skill Center</h2>
+                <p style="font-size: 0.8rem; color: #94a3b8;">Special Skill များကို ဝယ်ယူပြီး Level မြှင့်တင်ပါ (Max Lv.5)</p>
+            </div>
+            <div>
+                <span style="font-size: 1rem; color: #eab308; font-weight: bold;">Cash: <span id="skill-screen-money">$0</span></span>
+                <button class="btn-main" style="margin-left: 15px; padding: 6px 15px; font-size: 0.85rem;" onclick="switchScreen('dashboard-screen')">Back to Dashboard</button>
+            </div>
+        </div>
+
+        <div class="skill-list-grid" id="special-skill-cards-container"></div>
+    </div>
+
+    <!-- PRE-MATCH PREPARATION MODAL -->
+    <div id="prematch-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: #38bdf8; margin-bottom: 8px;">🏋️‍♂️ Pre-Match Preparation</h3>
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 12px;">
+                ပွဲမကစားမီ Training ပြုလုပ်မည်လား? (Day +1 ကြာမြင့်မည်)
+            </p>
+            <button class="choice-btn" style="background: #0284c7;" onclick="executePreMatchTraining(true)">
+                🏋️ Train Before Match (Stats UP / Day +1)
+            </button>
+            <button class="choice-btn" style="background: #334155;" onclick="executePreMatchTraining(false)">
+                ⏩ Skip Training (Direct Play / Day +0)
+            </button>
+        </div>
+    </div>
+
+    <!-- STAT RESULT NOTIFICATION MODAL -->
+    <div id="stat-result-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="stat-modal-title" style="color: #4ade80; margin-bottom: 10px;">🏋️ Training Results</h3>
+            <div id="stat-modal-content" style="font-size: 0.9rem; color: #cbd5e1; text-align: left; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 15px;"></div>
+            <button class="btn-main" style="width: 100%; margin-top: 0;" onclick="proceedToMatchAfterTraining()">Proceed to Match 🔥</button>
+        </div>
+    </div>
+
+    <!-- MATCH CHOICE MODAL -->
+    <div id="match-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: #f59e0b; margin-bottom: 8px;">🔥 Match Scenario (Hard Mode)</h3>
+            <p id="match-scenario-text" style="font-size: 0.9rem; margin-bottom: 12px;"></p>
+            <div id="match-options-container"></div>
+        </div>
+    </div>
+
+    <!-- CAREER RECORDS MODAL -->
+    <div id="records-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: #38bdf8; margin-bottom: 5px;">📊 Career Stats</h3>
+            <div class="record-grid">
+                <div class="record-card">
+                    <div style="font-size:0.7rem; color:#94a3b8;">Total Played</div>
+                    <div id="rec-total-matches" style="color:#38bdf8; font-weight:bold;">0</div>
+                </div>
+                <div class="record-card">
+                    <div style="font-size:0.7rem; color:#94a3b8;">Wins</div>
+                    <div id="rec-wins" style="color:#4ade80; font-weight:bold;">0</div>
+                </div>
+                <div class="record-card">
+                    <div style="font-size:0.7rem; color:#94a3b8;">Losses</div>
+                    <div id="rec-losses" style="color:#f87171; font-weight:bold;">0</div>
+                </div>
+                <div class="record-card">
+                    <div style="font-size:0.7rem; color:#94a3b8;">Win Rate</div>
+                    <div id="rec-winrate" style="color:#f59e0b; font-weight:bold;">0%</div>
+                </div>
+            </div>
+            <button class="choice-btn" style="text-align: center; font-weight: bold; background: #2563eb;" onclick="closeRecordsModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let isVIP = false;
+        let selectedSaveSlot = null;
+
+        let player = {
+            name: "Alex",
+            position: "",
+            age: 15,
+            money: 0,
+            currentDate: new Date(2026, 0, 1),
+            currentMatch: 1,
+            maxMatchesPerSeason: 12,
+            seasonWins: 0,
+            
+            totalMatchesPlayed: 0,
+            totalWins: 0,
+            totalLosses: 0,
+
+            energy: 100,
+            abilities: {},
+            skills: {},
+            specialSkillLevels: {}
+        };
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const specialSkillDatabase = [
+            { id: "dump_master", pos: "Setter", name: "🎯 Dump Master", baseCost: 1500, desc: "ပြိုင်ဘက် ခံစစ်ကို လှည့်စားပြီး အလစ်အငိုက် ပစ်ချသည့် စွမ်းရည်" },
+            { id: "phantom_set", pos: "Setter", name: "✨ Phantom Precision Set", baseCost: 2500, desc: "ဘလောက်ကာများကို လှည့်စားနိုင်သည့် ဧကရာဇ်မဆန်သော ပို့ဘော" },
+            { id: "nolook_set", pos: "Setter", name: "👁️ No-Look Jump Set", baseCost: 3500, desc: "ကြည့်မနေဘဲ ခန္ဓာကိုယ် လှည့်စား၍ မထင်မှတ်ထားသော နေရာသို့ ပို့ဘော" },
+
+            { id: "boom_jump", pos: "Spiker", name: "💥 Boom Jump Spike", baseCost: 1800, desc: "ဘလောက်ကာများ၏ လက်ထိပ်ထက် အမြင့်မှ တိုက်ရိုက် ရိုက်ချသည့် စွမ်းရည်" },
+            { id: "block_tooling", pos: "Spiker", name: "🖐️ Wipe-Out / Block Tooling", baseCost: 2800, desc: "ပြိုင်ဘက် လက်ကို ထိစေပြီး Out ဘောဖြစ်အောင် ဖန်တီးသည့် စွမ်းရည်" },
+            { id: "cross_spike", pos: "Spiker", name: "📐 Cross-Court Inner Spike", baseCost: 3500, desc: "ဘလောက်ကြား ထောင့်စွန်း အကျဉ်းဆုံး နေရာဆီသို့ တိကျစွာ ရိုက်ချခြင်း" },
+
+            { id: "monster_block", pos: "Middle Blocker", name: "🛡️ Monster Kill Block", baseCost: 2000, desc: "ပြိုင်ဘက် စပိုက်ကို ကွင်းထဲသို့ တိုက်ရိုက် ပြန်ကျအောင် ပိတ်ဆို့ခြင်း" },
+            { id: "read_react", pos: "Middle Blocker", name: "🧠 Read-and-React Jump", baseCost: 3000, desc: "Setter ၏ လက်ကို ကြိုတင် ခန့်မှန်း၍ တိကျစွာ ပိတ်ဆို့ခြင်း" },
+            { id: "quick_attack", pos: "Middle Blocker", name: "⚡ One-Time A-Quick", baseCost: 3500, desc: "ဘောလုံး လေထဲရောက်သည်နှင့် လျှပ်စစ်အရှိန်ဖြင့် ရိုက်ချခြင်း" },
+
+            { id: "super_pancake", pos: "Libero", name: "🥞 Super Pancake Save", baseCost: 1800, desc: "ဘောလုံး မြေမထိမီ လက်ဖဝါးဖြင့် အချိန်မီ ကယ်တင်နိုင်သည့် စွမ်းရည်" },
+            { id: "god_dig", pos: "Libero", name: "⚡ God Reflection Dig", baseCost: 3000, desc: "အလွန်ပြင်းထန်သော စပိုက်များကို လျှပ်တစ်ပြက် ပင့်တင်ပေးခြင်း" },
+            { id: "overhand_support", pos: "Libero", name: "🏐 Overhand Support Set", baseCost: 3500, desc: "ကွင်းနောက်တန်းမှ တိကျသော Setter အဖြစ် ဝင်ရောက် ကူညီပေးခြင်း" },
+
+            { id: "jump_serve_ace", pos: "Universal", name: "🚀 Jump Serve Ace", baseCost: 2200, desc: "ပြိုင်ဘက် မထိန်းနိုင်သော တိကျပြီး ပြင်းထန်သည့် စာဗစ်ထိုးချက်" },
+            { id: "clutch_aura", pos: "Universal", name: "👑 Clutch Aura", baseCost: 4000, desc: "Match Point ရောက်ချိန်တွင် အနိုင်ရရှိနိုင်ခြေ မြှင့်တင်ပေးခြင်း" }
+        ];
+
+        const positionData = {
+            "Setter": {
+                abilities: { "Agility / Speed": 30, "Game IQ": 30, "Stamina": 30, "Clutch / Composure": 30 },
+                skills: { "Setting Precision": 30, "Dump Shot": 30, "Jump Set": 30, "Serve / Blocking": 30 }
+            },
+            "Spiker": {
+                abilities: { "Vertical Jump": 30, "Strength / Power": 30, "Stamina": 30, "Reaction Speed": 30 },
+                skills: { "Spike Accuracy": 30, "Block Tooling": 30, "Jump Serve": 30, "Receive / Digging": 30 }
+            },
+            "Middle Blocker": {
+                abilities: { "Height & Reach": 30, "Vertical Jump": 30, "Lateral Speed": 30, "Read / Reaction": 30 },
+                skills: { "Read Blocking": 30, "Quick Attack": 30, "Commit Blocking": 30, "Soft Block / Touch": 30 }
+            },
+            "Libero": {
+                abilities: { "Agility / Speed": 30, "Reaction Speed": 30, "Flexibility": 30, "High Focus": 30 },
+                skills: { "Digging": 30, "Serve Receive": 30, "Pancake Save": 30, "Emergency Setting": 30 }
+            }
+        };
+
+        function openSaveModal() {
+            document.getElementById('save-modal').style.display = 'flex';
+        }
+
+        function closeSaveModal() {
+            document.getElementById('save-modal').style.display = 'none';
+        }
+
+        function selectSave(slot) {
+            selectedSaveSlot = slot;
+            if (slot === 'VIP') {
+                let pwd = prompt("VIP Save Password:");
+                if (pwd === "Uzubuta787787") {
+                    isVIP = true;
+                    player.money = 100000;
+                    specialSkillDatabase.forEach(s => {
+                        player.specialSkillLevels[s.id] = 1;
+                    });
+                    alert("⭐ VIP Access Granted! (+50% Skill Success Rate & x4 Daily Allowance)");
+                } else {
+                    alert("Incorrect Password!");
+                    return;
+                }
+            } else {
+                isVIP = false;
+            }
+            closeSaveModal();
+            setupCreationScreen();
+            switchScreen('creation-screen');
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+
+            if (screenId === 'skill-center-screen') {
+                renderSkillCenter();
+            }
+        }
+
+        let tempSelectedPos = "Setter";
+
+        function setupCreationScreen() {
+            const container = document.getElementById('pos-selector-container');
+            container.innerHTML = "";
+
+            let positions = ["Setter", "Spiker", "Middle Blocker", "Libero"];
+            
+            positions.forEach(pos => {
+                let card = document.createElement('div');
+                card.className = `pos-card ${pos === tempSelectedPos ? 'selected' : ''}`;
+                card.innerText = pos;
+                card.onclick = () => {
+                    document.querySelectorAll('.pos-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    tempSelectedPos = pos;
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function confirmPosition() {
+            player.position = tempSelectedPos;
+            player.abilities = JSON.parse(JSON.stringify(positionData[player.position].abilities));
+            player.skills = JSON.parse(JSON.stringify(positionData[player.position].skills));
+
+            switchScreen('dashboard-screen');
+            updateDashboardUI();
+        }
+
+        function appendLog(msg) {
+            const area = document.getElementById('log-area');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = msg;
+            area.appendChild(entry);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function formatDate(date) {
+            return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        function getDailyBaseSalary(age) {
+            if (age <= 18) return 50;
+            if (age <= 23) return 150;
+            if (age <= 29) return 350;
+            return 200;
+        }
+
+        function addDays(days) {
+            let prevYear = player.currentDate.getFullYear();
+            player.currentDate.setDate(player.currentDate.getDate() + days);
+            let newYear = player.currentDate.getFullYear();
+
+            let dailyRate = getDailyBaseSalary(player.age);
+            if (isVIP) dailyRate *= 4;
+            
+            let totalSalaryEarned = dailyRate * days;
+            player.money += totalSalaryEarned;
+
+            appendLog(`📅 ${days} ရက် ကုန်ဆုံးခဲ့သည်။ နေ့စဉ်ကြေး +$${totalSalaryEarned.toLocaleString()} ရရှိသည်။ ${isVIP ? '(VIP x4 Buff)' : ''}`);
+
+            if (newYear > prevYear) {
+                endSeason(prevYear);
+            }
+        }
+
+        function updateDashboardUI() {
+            document.getElementById('ui-name').innerText = player.name;
+            document.getElementById('ui-pos').innerText = player.position;
+            document.getElementById('ui-date').innerText = formatDate(player.currentDate);
+            document.getElementById('ui-age').innerText = player.age;
+            document.getElementById('ui-money').innerText = "$" + player.money.toLocaleString();
+            document.getElementById('ui-match-num').innerText = player.currentMatch;
+            document.getElementById('ui-vip-tag').innerText = isVIP ? "[VIP]" : "";
+            
+            if (isVIP) {
+                document.getElementById('ui-energy').innerText = "100% (Unlimited)";
+                document.getElementById('ui-energy').style.color = "#fbbf24";
+            } else {
+                document.getElementById('ui-energy').innerText = player.energy + "%";
+                document.getElementById('ui-energy').style.color = "#4ade80";
+            }
+
+            const abContainer = document.getElementById('abilities-list');
+            abContainer.innerHTML = "";
+            for (let [k, v] of Object.entries(player.abilities)) {
+                abContainer.innerHTML += `<div>${k}: <b>${v}</b></div>`;
+            }
+
+            const skContainer = document.getElementById('skills-list');
+            skContainer.innerHTML = "";
+            for (let [k, v] of Object.entries(player.skills)) {
+                skContainer.innerHTML += `<div>${k}: <b>${v}</b></div>`;
+            }
+        }
+
+        function restPlayer() {
+            if (isVIP) {
+                appendLog("⭐ VIP Status ဖြစ်သည့်အတွက် Energy အမြဲပြည့်နေပါသည်။");
+            } else {
+                player.energy = Math.min(100, player.energy + 40);
+            }
+            addDays(3);
+            updateDashboardUI();
+        }
+
+        function triggerPreMatch() {
+            if (player.currentMatch > player.maxMatchesPerSeason) {
+                appendLog("⚠️ ရာသီပွဲစဉ်များ ပြီးဆုံးသွားပါပြီ။ Rest ပြုလုပ်ပါ။");
+                return;
+            }
+
+            if (!isVIP && player.energy < 30) {
+                appendLog("⚠️ ပွဲကစားရန် Energy မလုံလောက်ပါ။ အနားယူပါ!");
+                return;
+            }
+
+            document.getElementById('prematch-modal').style.display = 'flex';
+        }
+
+        function executePreMatchTraining(doTrain) {
+            document.getElementById('prematch-modal').style.display = 'none';
+
+            let modalTitle = document.getElementById('stat-modal-title');
+            let modalContent = document.getElementById('stat-modal-content');
+            let contentHtml = "";
+
+            if (doTrain) {
+                let increment = isVIP ? 4 : 1;
+                addDays(1);
+
+                modalTitle.innerText = "🏋️ Pre-Match Training Complete! (Day +1)";
+                modalTitle.style.color = "#4ade80";
+                
+                contentHtml += `<div style="font-weight:bold; color:#38bdf8; margin-bottom:5px;">ABILITIES INCREASED:</div>`;
+                for (let k in player.abilities) {
+                    player.abilities[k] += increment;
+                    contentHtml += `<div>• ${k}: <span class="stat-up-tag">+${increment}</span> (Now: ${player.abilities[k]})</div>`;
+                }
+
+                contentHtml += `<div style="font-weight:bold; color:#38bdf8; margin-top:8px; margin-bottom:5px;">SKILLS INCREASED:</div>`;
+                for (let k in player.skills) {
+                    player.skills[k] += increment;
+                    contentHtml += `<div>• ${k}: <span class="stat-up-tag">+${increment}</span> (Now: ${player.skills[k]})</div>`;
+                }
+
+                appendLog(`🏋️‍♂️ ပွဲမကစားမီ လေ့ကျင့်ခန်းပြုလုပ်ခဲ့သည်။ Ability နှင့် Skill အားလုံး +${increment} တိုးတက်လာသည်! (Day +1)`);
+            } else {
+                modalTitle.innerText = "⏩ Training Skipped (Direct Play)";
+                modalTitle.style.color = "#f87171";
+                
+                contentHtml += `<div style="color:#fbbf24; font-weight:bold; margin-bottom:5px;">⚠️ လေ့ကျင့်ခန်း မပြုလုပ်ခဲ့ပါ:</div>`;
+                contentHtml += `<div>• Ability Gains: <span style="color:#f87171; font-weight:bold;">+0 (မတိုးတက်ပါ)</span></div>`;
+                contentHtml += `<div>• Skill Gains: <span style="color:#f87171; font-weight:bold;">+0 (မတိုးတက်ပါ)</span></div>`;
+                contentHtml += `<div style="margin-top:8px; font-size:0.8rem; color:#94a3b8;">တိုက်ရိုက် ပွဲစဉ်ထဲသို့ ဝင်ရောက်ပါမည်။</div>`;
+
+                appendLog(`⏩ Pre-Match Training ကို Skip လုပ်ခဲ့သည်။ Stats တိုးတက်မှု မရှိပါ (+0)။ (Day +0)`);
+            }
+
+            if (!isVIP) {
+                player.energy -= 30;
+            }
+
+            modalContent.innerHTML = contentHtml;
+            updateDashboardUI();
+            
+            document.getElementById('stat-result-modal').style.display = 'flex';
+        }
+
+        function proceedToMatchAfterTraining() {
+            document.getElementById('stat-result-modal').style.display = 'none';
+            startActualMatch();
+        }
+
+        const scenarios = [
+            {
+                text: "🔥 [Hard Match] ပြိုင်ဘက်က အလွန်ပြင်းထန်သော Jump Spike ရိုက်ချလိုက်သည်။ ခံစစ် တားဆီးရန် ခက်ခဲနေသည်!",
+                options: [
+                    { text: "Jump Block တားမည် (Normal Block)", statReq: "Vertical Jump", isSpecial: false, successMsg: "🏆 တိကျသော ဘလောက်ဖြင့် ခက်ခဲစွာ အမှတ်ရရှိခဲ့သည်!", failMsg: "❌ ဘလောက်ကို ကျော်လွန်၍ ပြိုင်ဘက် အမှတ်ရသွားသည်!" },
+                    { text: "Digging အောက်က ပင့်ခံမည် (Normal Dig)", statReq: "Reaction Speed", isSpecial: false, successMsg: "🏆 လှပသော Digging ဖြင့် ဘောလုံးကို ပင့်တင်နိုင်ခဲ့သည်!", failMsg: "❌ ဘောလုံး အရှိန်ပြင်း၍ ထိန်းမရဘဲ ထွက်သွားသည်!" },
+                    { text: "🛡️ Monster Kill Block သုံးမည်! (Special Skill)", specialId: "monster_block", statReq: "Read Blocking", isSpecial: true, successMsg: "💥 Monster Kill Block! ပြိုင်ဘက် စပိုက်ကို အပြတ်အသတ် ရိုက်ပိတ်လိုက်သည်!", failMsg: "❌ Monster Block သုံးသော်လည်း အချိန်ကိုက် မမီလိုက်ပါ!" },
+                    { text: "⚡ God Reflection Dig သုံးမည်! (Special Skill)", specialId: "god_dig", statReq: "Digging", isSpecial: true, successMsg: "⚡ God Reflection Dig! လျှပ်စစ်အရှိန်ဖြင့် ဘောလုံးကို ပင့်တင်လိုက်သည်!", failMsg: "❌ ဘောလုံး အရှိန်ပြင်းလွန်း၍ ထွက်သွားသည်!" }
+                ]
+            },
+            {
+                text: "🔥 [Hard Match] Match Point အခြေအနေတွင် ပြိုင်ဘက် ခံစစ်အပြည့် ပိတ်ထားသည်။ ဘာလုပ်မည်နည်း?",
+                options: [
+                    { text: "အနားစည်းလိုင်းဘေးသို့ ရိုက်ချမည် (Normal Spike)", statReq: "Spike Accuracy", isSpecial: false, successMsg: "🏆 စည်းလိုင်းပေါ် တိကျစွာ ကျရောက်ပြီး အမှတ်ရသည်!", failMsg: "❌ ဘောလုံး လိုင်းအပြင်ဘက် ထွက်သွားသည်!" },
+                    { text: "🎯 Dump Master လှည့်စားပစ်ချမည်! (Special Skill)", specialId: "dump_master", statReq: "Dump Shot", isSpecial: true, successMsg: "🎯 Dump Master! ပြိုင်ဘက် ခံစစ် တစ်ခုလုံးကို လှည့်စား၍ အမှတ်ယူလိုက်သည်!", failMsg: "❌ ပြိုင်ဘက်က ရိပ်မိပြီး ပိတ်ဆို့သွားသည်!" },
+                    { text: "🖐️ Block Tooling / Wipe-Out သုံးမည်! (Special Skill)", specialId: "block_tooling", statReq: "Block Tooling", isSpecial: true, successMsg: "🖐️ Wipe-Out အောင်မြင်စွာ ရိုက်ထုတ်ပြီး Match Point ရရှိခဲ့သည်!", failMsg: "❌ ဘလောက်တုံးထဲ တိုက်ရိုက် ငြိသွားသည်!" }
+                ]
+            }
+        ];
+
+        function startActualMatch() {
+            let scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            
+            document.getElementById('match-scenario-text').innerText = scenario.text;
+            const container = document.getElementById('match-options-container');
+            container.innerHTML = "";
+
+            scenario.options.forEach(opt => {
+                if (opt.isSpecial && !player.specialSkillLevels[opt.specialId]) {
+                    return;
+                }
+
+                let currentLevel = player.specialSkillLevels[opt.specialId] || 1;
+
+                let btn = document.createElement('button');
+                btn.className = `choice-btn ${opt.isSpecial ? 'special-btn' : ''}`;
+                btn.innerText = opt.isSpecial ? `${opt.text} [Lv.${currentLevel}]` : opt.text;
+                btn.onclick = () => resolveMatchChoice(opt);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('match-modal').style.display = 'flex';
+        }
+
+        function resolveMatchChoice(option) {
+            document.getElementById('match-modal').style.display = 'none';
+
+            let playerStat = player.abilities[option.statReq] || player.skills[option.statReq] || 30;
+            let baseDifficulty = 3.2;
+
+            let rawChance = (playerStat * 1.3) / baseDifficulty;
+            
+            if (option.isSpecial) {
+                let skillLv = player.specialSkillLevels[option.specialId] || 1;
+                let levelBonus = skillLv * 5;
+                
+                if (isVIP) {
+                    rawChance += 50 + levelBonus;
+                } else {
+                    rawChance += 20 + levelBonus;
+                }
+            }
+
+            let finalSuccessChance = Math.max(10, Math.min(95, rawChance));
+            let roll = Math.random() * 100;
+
+            player.totalMatchesPlayed += 1;
+
+            if (roll < finalSuccessChance) {
+                player.seasonWins += 1;
+                player.totalWins += 1;
+                appendLog(`✅ Match ${player.currentMatch}: ${option.successMsg}`);
+            } else {
+                player.totalLosses += 1;
+                appendLog(`❌ Match ${player.currentMatch}: ${option.failMsg}`);
+            }
+
+            addDays(3);
+
+            if (player.currentMatch < player.maxMatchesPerSeason) {
+                player.currentMatch += 1;
+            } else {
+                endSeason(player.currentDate.getFullYear());
+            }
+
+            updateDashboardUI();
+        }
+
+        function openSkillCenter() {
+            switchScreen('skill-center-screen');
+        }
+
+        function renderSkillCenter() {
+            document.getElementById('skill-screen-money').innerText = "$" + player.money.toLocaleString();
+            
+            const container = document.getElementById('special-skill-cards-container');
+            container.innerHTML = "";
+
+            let availableSkills = specialSkillDatabase.filter(s => s.pos === player.position || s.pos === "Universal");
+
+            availableSkills.forEach(skill => {
+                let currentLevel = player.specialSkillLevels[skill.id] || 0;
+                let isUnlocked = currentLevel > 0;
+                let upgradeCost = skill.baseCost * (currentLevel + 1);
+
+                let card = document.createElement('div');
+                card.className = `skill-card ${isUnlocked ? 'unlocked' : ''}`;
+
+                let actionArea = "";
+                if (!isUnlocked) {
+                    actionArea = `<button class="btn-buy" onclick="buySpecialSkill('${skill.id}', ${skill.baseCost})">Unlock ($${skill.baseCost.toLocaleString()})</button>`;
+                } else if (currentLevel < 5) {
+                    actionArea = `<button class="btn-upgrade" onclick="upgradeSpecialSkill('${skill.id}', ${upgradeCost})">Level Up to Lv.${currentLevel + 1} ($${upgradeCost.toLocaleString()})</button>`;
+                } else {
+                    actionArea = `<div style="color:#fbbf24; font-weight:bold; text-align:center; padding:6px; background:rgba(0,0,0,0.3); border-radius:4px;">MAX LEVEL (Lv.5)</div>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="skill-title">${skill.name} <span style="font-size:0.75rem; color:#38bdf8;">${isUnlocked ? '[Lv.' + currentLevel + ']' : ''}</span></div>
+                        <div class="skill-desc">${skill.desc}</div>
+                    </div>
+                    <div>${actionArea}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function buySpecialSkill(skillId, cost) {
+            if (player.money >= cost) {
+                player.money -= cost;
+                player.specialSkillLevels[skillId] = 1;
+                alert("🎉 Special Skill အား Unlocked (Lv.1) ပြုလုပ်ပြီးပါပြီ!");
+                renderSkillCenter();
+                updateDashboardUI();
+            } else {
+                alert("❌ ပိုက်ဆံ မလုံလောက်ပါ!");
+            }
+        }
+
+        function upgradeSpecialSkill(skillId, cost) {
+            if (player.money >= cost) {
+                player.money -= cost;
+                player.specialSkillLevels[skillId] += 1;
+                alert(`⭐ Special Skill ကို Level ${player.specialSkillLevels[skillId]} သို့ မြှင့်တင်လိုက်ပါပြီ!`);
+                renderSkillCenter();
+                updateDashboardUI();
+            } else {
+                alert("❌ ပိုက်ဆံ မလုံလောက်ပါ!");
+            }
+        }
+
+        function endSeason(completedYear) {
+            appendLog(`🏁 ${completedYear} Season ပြီးဆုံးခဲ့သည်။ နိုင်ပွဲ: ${player.seasonWins}/${player.maxMatchesPerSeason}`);
+            player.currentMatch = 1;
+            player.seasonWins = 0;
+            player.age += 1;
+            player.currentDate = new Date(completedYear + 1, 0, 1);
+        }
+
+        function openRecordsModal() {
+            document.getElementById('rec-total-matches').innerText = player.totalMatchesPlayed;
+            document.getElementById('rec-wins').innerText = player.totalWins;
+            document.getElementById('rec-losses').innerText = player.totalLosses;
+            let rate = player.totalMatchesPlayed > 0 ? ((player.totalWins / player.totalMatchesPlayed) * 100).toFixed(1) : 0;
+            document.getElementById('rec-winrate').innerText = rate + "%";
+            document.getElementById('records-modal').style.display = 'flex';
+        }
+
+        function closeRecordsModal() {
+            document.getElementById('records-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
